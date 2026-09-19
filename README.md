@@ -113,8 +113,14 @@ On Windows:
        ▼
     Keyboard
 
-The keyboard firmware consumes the Caps Lock LED transition as its
-AutoMouseLayer signal.
+The keyboard firmware consumes the current Caps Lock LED state as its
+AutoMouseLayer signal:
+
+- Caps Lock ON → Windows Mouse layer ON
+- Caps Lock OFF → Windows Mouse layer OFF
+
+The Windows path is state-based and does not use the macOS Raw HID
+AutoMouseLayer timeout.
 
 This is separate from DragScroll:
 
@@ -143,7 +149,9 @@ The keyboard firmware is responsible for:
 - handling the DragScroll command
 - handling the AutoMouseLayer signal
 - selecting the appropriate Mouse layer
-- managing AutoMouseLayer ownership and timeout
+- managing AutoMouseLayer ownership
+- applying the Raw HID/macOS AutoMouseLayer timeout
+- consuming the Windows Caps Lock LED state
 
 Ploopy-Bridge-HID only transports the corresponding Raw HID messages.
 
