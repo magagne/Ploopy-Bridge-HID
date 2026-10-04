@@ -15,6 +15,9 @@ SCAN_INTERVAL = 1.0
 DRAG_SCROLL_ON = 0x53
 DRAG_SCROLL_OFF = 0x73
 
+TEMPORARY_DPI_ON = 0x54
+TEMPORARY_DPI_OFF = 0x74
+
 AUTO_MOUSE_LAYER = 0x41
 AUTO_MOUSE_LAYER_VERSION = 0x01
 
@@ -66,6 +69,38 @@ class PloopyOutput:
                     flush=True,
                 )
 
+
+
+    def send_temporary_dpi(self, enabled):
+        command = TEMPORARY_DPI_ON if enabled else TEMPORARY_DPI_OFF
+        report = [command] + [0] * (REPORT_SIZE - 1)
+
+        for path, entry in list(self.devices.items()):
+            if entry["role"] != "ploopy":
+                continue
+
+            name = entry["name"]
+
+            try:
+                written = entry["device"].write(b"\x00" + bytes(report))
+
+                print(
+                    f"TX [{name}]: "
+                    + " ".join(f"{byte:02x}" for byte in report),
+                    flush=True,
+                )
+
+                if written != REPORT_SIZE + 1:
+                    print(
+                        f"TX WARNING [{name}]: wrote {written} bytes",
+                        flush=True,
+                    )
+
+            except OSError as error:
+                print(
+                    f"TX ERROR [{name}]: {error}",
+                    flush=True,
+                )
 
 class KeyboardOutput:
     """
@@ -244,6 +279,13 @@ def decode_event(data):
 
     if command == DRAG_SCROLL_OFF:
         return ("drag_scroll", False)
+
+    if command == TEMPORARY_DPI_ON:
+        return ("temporary_dpi", True)
+
+    if command == TEMPORARY_DPI_OFF:
+        return ("temporary_dpi", False)
+
 
     if (
         command == AUTO_MOUSE_LAYER
@@ -478,6 +520,14 @@ def main():
 
                     ploopy.update_devices(devices)
                     ploopy.send_drag_scroll(event_value)
+
+                elif event_type == "temporary_dpi":
+                    # Keyboard -> bridge -> Ploopy
+                    if entry["role"] != "keyboard":
+                        continue
+
+                    ploopy.update_devices(devices)
+                    ploopy.send_temporary_dpi(event_value)
 
                 elif event_type == "auto_mouse_layer":
                     # Ploopy -> bridge -> keyboard
