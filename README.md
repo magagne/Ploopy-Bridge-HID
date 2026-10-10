@@ -91,8 +91,7 @@ The notification is independent of:
 - DragScroll
 - Vertical Scrolling Only
 
-The bridge only transports the notification. The keyboard firmware decides
-which Mouse layer to activate and how long it remains active.
+The bridge only transports the notification. The keyboard firmware handles Mouse-layer activation and exit without an AutoMouseLayer inactivity timer.
 
 ## AutoMouseLayer-LED
 
@@ -116,11 +115,10 @@ On Windows:
 The keyboard firmware consumes the current Caps Lock LED state as its
 AutoMouseLayer signal:
 
-- Caps Lock ON → Windows Mouse layer ON
-- Caps Lock OFF → Windows Mouse layer OFF
+- Caps Lock ON → Windows Mouse layer activation signal
 
-The Windows path is state-based and does not use the macOS Raw HID
-AutoMouseLayer timeout.
+The Windows path is state-based and is independent of the Mac Raw HID
+activation path.
 
 This is separate from DragScroll:
 
@@ -150,7 +148,7 @@ The keyboard firmware is responsible for:
 - handling the AutoMouseLayer signal
 - selecting the appropriate Mouse layer
 - managing AutoMouseLayer ownership
-- applying the Raw HID/macOS AutoMouseLayer timeout
+- deciding when the Mac Mouse layer is exited; Raw HID activation has no inactivity timeout
 - consuming the Windows Caps Lock LED state
 
 Ploopy-Bridge-HID only transports the corresponding Raw HID messages.
